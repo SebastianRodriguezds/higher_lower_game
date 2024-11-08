@@ -1,71 +1,64 @@
-from game_data import data
-from logo import logo, vs
+import os
 import random
+from logo import *
+from game_data import *
 
-def format_date(account):
-  """Format the account data into printable format."""
-  account_name = account["name"]
-  account_desc = account["description"]
-  account_country = account["country"]
-  return f"{account_name}, a {account_desc}, from {account_country}"
+def get_a_guess():
+  """Ask the user to choose a option and validate that the input is in 
+  a correct format"""
+  guess = None
+  while not guess:
+    guess = input("Who has more followers? Type 'A' or 'B': ")
+    if guess != 'A' and guess != 'B':
+      guess = None
+      print("Wrong input. Try again.")
+  return guess
 
-def check_answer(user_guess, a_followers, b_followers):
-  """Take a user's guess and the follower counts and return if they got it right"""
-  if a_followers > b_followers:
-      return user_guess == "a" 
-  else:
-      return user_guess == "b"
+def get_a_and_b(a=-1, b=-1): #value by default in case that a or b are empty
+  """Generate values random and assign them to variables a and b. Also check that a and b doesn't contain same data and return the values"""
+  if a < 0:
+    a= random.randint(0, len(data) - 1)
+  b = random.randint(0, len(data) - 1)
 
+  while a == b:
+    b = random.randint(0, len(data) - 1)
+  
+  return a, b
 
-#Display logo
-print(logo)
-score = 0
-game_should_continue = True
-correct_answer = ""
+def main():
+  """Main function to run the game, set score variables and a flag to track the state of the game. Also trigger get_a_and_b function to display options and control the flow of the application depending on the user answer."""
+  score = 0
+  game_over = False
+  a = b = -1
 
-#Make the game repeatable.
-while game_should_continue:
+  while not game_over:
+    print(logo)
+    print()
 
-  #Generate a random account from the game data.
-  if correct_answer == "":
-    account_a = random.choice(data) 
-    account_b = random.choice(data) 
-  else:
-    account_a = correct_answer
-    account_b = random.choice(data) 
+    a, b = get_a_and_b(a, b)
+    if score > 0:
+      print(f"You're right! Current score: {score}.")
 
-  if account_a == account_b:
-    account_b = random.choice(data)
-    
-  print(f"Compare A: {format_date(account_a)}.")
-  print(vs)
-  print(f"Against B: {format_date(account_b)}.")
+    print(f"Compare A: {data[a]['name']}, {data[a]['description']} from {data[a]['country']}")
+    print()
+    print(vs)
+    print()
+    print(f"Against B: {data[b]['name']}, {data[b]['description']} from {data[b]['country']}")
 
-  #Ask user for a guess.
-  guess = input("Who has more followers? Type 'A' or 'B': ").lower()
-  if guess == 'a':
-    correct_answer  = account_a
-  elif guess == 'b':
-    correct_answer = account_b
+    guess = get_a_guess()
 
-  #Clear the screen
-  print("\n" * 50)
+    if(guess == 'A' and data[a]['follower_count'] > data[b]['follower_count']) or (guess == 'B' and data[a]['follower_count'] < data[b]['follower_count']):
+      score += 1
+      os.system('cls')
+      if guess == 'B':
+        a = b
+    else:
+      game_over = True
+  
+  os.system('cls')
   print(logo)
+  print()
+  print(f"Sorry, that's wrong. Final score: {score}")
 
-  #Check if the user is correct.
-  #Get follower count of each account 
-  a_follower_count = account_a["follower_count"]
-  b_follower_count = account_b["follower_count"]
-  is_correct = check_answer(guess, a_follower_count, b_follower_count)
-
-  #Use if statemnt to check if user is correct.
-  #Give user feedback on their guess.
-  #score keeping.
-  if is_correct:
-    score+= 1
-    print(f"You're right! Current score {score}.")
-  else:
-    print(f"Sorry, that's wrong.Final score: {score}.")
-    game_should_continue = False
-
-#Making account at position B became the next account at position A.
+if __name__ == "__main__":
+  main()
